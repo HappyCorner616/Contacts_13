@@ -46,9 +46,9 @@ public class HttpProvider {
     public String registration(String email, String password) throws Exception {
         AuthDto authDto = new AuthDto(email, password);
         Call<AuthResponseDto> call = api.registration(authDto);
-        Log.d(MY_TAG, "before call.execute(): ");
+        //Log.d(MY_TAG, "before call.execute(): ");
         Response<AuthResponseDto> response = call.execute();
-        Log.d(MY_TAG, "after call.execute(): ");
+        //Log.d(MY_TAG, "after call.execute(): ");
         if(response.isSuccessful()){
             return response.body().getToken();
         }else{
