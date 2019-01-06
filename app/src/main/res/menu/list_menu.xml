@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/item_exit"
+        android:title="exit" />
+    <item android:id="@+id/item_add"
+        android:title="add"
+        android:icon="@drawable/ic_action_add"
+        app:showAsAction="ifRoom"/>
+    <item android:id="@+id/item_refresh"
+        android:title="refresh" />
+    <item android:id="@+id/item_clearAll"
+        android:title="clear all" />
+
+    <item android:id="@+id/item_pagerMode"
+        android:title="pager mode" />
+</menu>
