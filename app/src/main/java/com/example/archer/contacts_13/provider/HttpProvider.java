@@ -35,7 +35,7 @@ public class HttpProvider {
 
     private HttpProvider() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL_ME)
+                .baseUrl(BASE_URL_GRISHA)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
