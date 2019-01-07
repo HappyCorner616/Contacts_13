@@ -162,6 +162,9 @@ public class MainPresenter extends MvpPresenter<IMainActivity> {
         @Override
         protected void onPostExecute(String s) {
             getViewState().desetWaitingMode();
+            if(list == null){
+                list = new ArrayList<>();
+            }
             if(isSuccessful){
                 listFragment.finishRefresList(list);
             }else{
