@@ -12,13 +12,24 @@ import android.widget.Toast;
 import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.example.archer.contacts_13.dto.Contact;
+import com.example.archer.contacts_13.provider.Api;
+import com.example.archer.contacts_13.provider.IAuthInterractor;
+import com.example.archer.contacts_13.provider.IAuthRepository;
+import com.example.archer.contacts_13.provider.LoginRepository;
+import com.example.archer.contacts_13.provider.SharedStore;
+import com.example.archer.contacts_13.provider.Store;
 import com.example.archer.contacts_13.provider.StoreProvider;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends MvpAppCompatActivity implements IMainActivity, LoginFragment.LoginFragmentListener, ListFragment.ListFragmentListener, ContactFragment.ContactFragmentListener {
 
@@ -28,14 +39,32 @@ public class MainActivity extends MvpAppCompatActivity implements IMainActivity,
     @InjectPresenter
     MainPresenter presenter;
 
+    @Inject
+    IAuthInterractor authInterractor;
+
     private Unbinder unbinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        App.get().component().inject(this);
+
         setContentView(R.layout.activity_main);
 
         unbinder = ButterKnife.bind(this);
+
+        /*Store store = new SharedStore(this);
+        OkHttpClient client = new OkHttpClient();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://contacts-telran.herokuapp.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        Api api = retrofit.create(Api.class);
+        IAuthRepository authRepository = new LoginRepository(api, store);
+        authInterractor = new LoginInterractor(authRepository);*/
+
 
         if(StoreProvider.getInstance().getToken() != null){
             startListFragment();
@@ -92,21 +121,6 @@ public class MainActivity extends MvpAppCompatActivity implements IMainActivity,
     }
 
     @Override
-    public void exitFromAccount(ListFragment listFragment) {
-        presenter.exitFromAccount();
-    }
-
-    @Override
-    public void clearAllContacts(ListFragment listFragment) {
-        presenter.clearAllContacts(listFragment);
-    }
-
-    @Override
-    public void deleteContacts(List<Contact> contacts, ListFragment listFragment) {
-        presenter.deleteContacts(contacts, listFragment);
-    }
-
-    @Override
     public void showError(String error) {
         new AlertDialog.Builder(this).setTitle("error")
                 .setMessage(error)
@@ -131,7 +145,26 @@ public class MainActivity extends MvpAppCompatActivity implements IMainActivity,
     // LOGIN
     @Override
     public void regBtnClick(String email, String password) {
-        presenter.registration(email, password);
+        //presenter.registration(email, password);
+        setWaitingMode();
+        try{
+            authInterractor.registration(email, password, new AuthInterractorCallback() {
+                @Override
+                public void registratioSuccess() {
+                    desetWaitingMode();
+                    showToast("Done");
+                }
+
+                @Override
+                public void registrationFailure(String error) {
+                    desetWaitingMode();
+                    showError(error);
+                }
+            });
+        }catch (IllegalArgumentException e){
+            showError(e.getMessage());
+            desetWaitingMode();
+        }
     }
 
     @Override
@@ -143,6 +176,21 @@ public class MainActivity extends MvpAppCompatActivity implements IMainActivity,
     @Override
     public void refreshList(ListFragment listFragment) {
         presenter.refreshContactsList(listFragment);
+    }
+
+    @Override
+    public void exitFromAccount(ListFragment listFragment) {
+        presenter.exitFromAccount();
+    }
+
+    @Override
+    public void clearAllContacts(ListFragment listFragment) {
+        presenter.clearAllContacts(listFragment);
+    }
+
+    @Override
+    public void deleteContacts(List<Contact> contacts, ListFragment listFragment) {
+        presenter.deleteContacts(contacts, listFragment);
     }
 
     //CONTACT
