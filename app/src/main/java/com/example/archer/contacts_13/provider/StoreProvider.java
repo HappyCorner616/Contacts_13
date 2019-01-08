@@ -2,7 +2,9 @@ package com.example.archer.contacts_13.provider;
 
 import android.content.Context;
 
-public class StoreProvider {
+import com.example.archer.contacts_13.dagpack.interfaces.IStore;
+
+public class StoreProvider implements IStore {
 
     private static StoreProvider instance = null;
 
@@ -20,8 +22,9 @@ public class StoreProvider {
         return instance;
     }
 
+    @Override
     public void setContext(Context context) {
-        this.context = context;
+        instance.context = context;
     }
 
     public void saveToket(String token){

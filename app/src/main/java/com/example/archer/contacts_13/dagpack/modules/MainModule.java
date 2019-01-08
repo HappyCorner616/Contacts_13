@@ -1,10 +1,10 @@
-package com.example.archer.contacts_13;
+package com.example.archer.contacts_13.dagpack.modules;
 
 import android.content.Context;
 
+import com.example.archer.contacts_13.dagpack.interfaces.IStore;
 import com.example.archer.contacts_13.provider.Api;
-import com.example.archer.contacts_13.provider.SharedStore;
-import com.example.archer.contacts_13.provider.Store;
+import com.example.archer.contacts_13.provider.StoreProvider;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,6 +18,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 @Module
 public class MainModule {
+
+    private static final String BASE_URL_GRISHA = "http://contacts-telran.herokuapp.com/";
+    private static final String BASE_URL_ME = "http://192.168.1.11:8080/ForAndroid/";
 
     private Context context;
 
@@ -33,13 +36,15 @@ public class MainModule {
 
     @Provides
     @Singleton
-    Store provideStore(Context context){
-        return new SharedStore(context);
+    IStore provideStore(Context context){
+        IStore store = StoreProvider.getInstance();
+        store.setContext(context);
+        return store;
     }
 
     @Provides
     @Singleton
-    OkHttpClient provideOkHttpClient(){
+    OkHttpClient provideClient(){
         return new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
@@ -50,9 +55,9 @@ public class MainModule {
     @Singleton
     Api provideApi(OkHttpClient client){
         return new Retrofit.Builder()
-                .baseUrl("http://contacts-telran.herokuapp.com/")
+                .baseUrl(BASE_URL_GRISHA)
+                .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build().create(Api.class);
     }
-
 }

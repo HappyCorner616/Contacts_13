@@ -4,6 +4,9 @@ import android.os.AsyncTask;
 
 import com.arellomobile.mvp.InjectViewState;
 import com.arellomobile.mvp.MvpPresenter;
+import com.example.archer.contacts_13.dagpack.interfaces.IAuthInteractor;
+import com.example.archer.contacts_13.dagpack.interfaces.ILoginInteractorCallback;
+import com.example.archer.contacts_13.dagpack.interfaces.IRegistrationInteractorCallback;
 import com.example.archer.contacts_13.dto.Contact;
 import com.example.archer.contacts_13.dto.ContactsDto;
 import com.example.archer.contacts_13.provider.HttpProvider;
@@ -13,8 +16,17 @@ import com.example.archer.contacts_13.provider.StoreProvider;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 @InjectViewState
 public class MainPresenter extends MvpPresenter<IMainActivity> {
+
+    @Inject
+    IAuthInteractor authInteractor;
+
+    public MainPresenter(){
+        App.get().authComponent().inject(this);
+    }
 
     public void registration(String email,String password){
         new RegistrationTask(email, password).execute();
@@ -52,10 +64,11 @@ public class MainPresenter extends MvpPresenter<IMainActivity> {
         new DeleteContactsTask(contacts, listFragment).execute();
     }
 
-    class RegistrationTask extends AsyncTask<Void, Void, String>{
+    class RegistrationTask extends AsyncTask<Void, Void, Void>{
 
         private String email, password;
         private boolean isSuccessful;
+        private String res;
 
         public RegistrationTask(String email, String password) {
             this.email = email;
@@ -69,31 +82,38 @@ public class MainPresenter extends MvpPresenter<IMainActivity> {
         }
 
         @Override
-        protected String doInBackground(Void... voids) {
-            try {
-                String token = HttpProvider.getInstance().registration(email, password);
-                return "regostration ok";
-            } catch (Exception e) {
-                isSuccessful = false;
-                return e.getMessage();
-            }
+        protected Void doInBackground(Void... voids) {
+            authInteractor.registration(email, password, new IRegistrationInteractorCallback() {
+               @Override
+               public void successful() {
+                   res = "Done";
+               }
+
+               @Override
+               public void failure(String error) {
+                   isSuccessful = false;
+                   res = error;
+               }
+           });
+            return null;
         }
 
         @Override
-        protected void onPostExecute(String s) {
+        protected void onPostExecute(Void v) {
             getViewState().desetWaitingMode();
             if(isSuccessful){
-                getViewState().showToast(s);
+                getViewState().showToast(res);
             }else{
-                getViewState().showError(s);
+                getViewState().showError(res);
             }
         }
     }
 
-    class LoginTask extends AsyncTask<Void, Void, String>{
+    class LoginTask extends AsyncTask<Void, Void, Void>{
 
         private String email, password;
         private boolean isSuccessful;
+        private String res;
 
         public LoginTask(String email, String password) {
             this.email = email;
@@ -107,24 +127,29 @@ public class MainPresenter extends MvpPresenter<IMainActivity> {
         }
 
         @Override
-        protected String doInBackground(Void... voids) {
-            try {
-                String token = HttpProvider.getInstance().login(email, password);
-                StoreProvider.getInstance().saveToket(token);
-                return "Done";
-            } catch (Exception e) {
-                isSuccessful = false;
-                return e.getMessage();
-            }
+        protected Void doInBackground(Void... voids) {
+            authInteractor.login(email, password, new ILoginInteractorCallback() {
+                @Override
+                public void successful() {
+
+                }
+
+                @Override
+                public void failure(String error) {
+                    isSuccessful = false;
+                    res = error;
+                }
+            });
+            return null;
         }
 
         @Override
-        protected void onPostExecute(String s) {
+        protected void onPostExecute(Void v) {
             getViewState().desetWaitingMode();
             if(isSuccessful){
                 getViewState().startListFragment();
             }else{
-                getViewState().showError(s);
+                getViewState().showError(res);
             }
         }
     }
@@ -400,7 +425,6 @@ public class MainPresenter extends MvpPresenter<IMainActivity> {
             }
         }
     }
-
 
 
 }
