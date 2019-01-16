@@ -35,7 +35,7 @@ public class HttpProvider {
 
     private HttpProvider() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL_GRISHA)
+                .baseUrl(BASE_URL_ME)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -121,6 +121,7 @@ public class HttpProvider {
 
     public String deleteContact(Contact contact, String token) throws Exception {
         Call<DeleteResponseDto> call = api.delete(contact.getId(), token);
+        Log.d(MY_TAG, "deleteContact url: " + call.request().url().toString());
         Response<DeleteResponseDto> response = call.execute();
         if(response.isSuccessful()){
             return response.body().getStatus();

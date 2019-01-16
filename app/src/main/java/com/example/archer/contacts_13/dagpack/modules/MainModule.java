@@ -55,7 +55,7 @@ public class MainModule {
     @Singleton
     Api provideApi(OkHttpClient client){
         return new Retrofit.Builder()
-                .baseUrl(BASE_URL_GRISHA)
+                .baseUrl(BASE_URL_ME)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build().create(Api.class);
