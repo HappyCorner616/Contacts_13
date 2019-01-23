@@ -1,8 +1,6 @@
 package com.example.archer.contacts_13.dagpack.modules;
 
 import com.example.archer.contacts_13.dagpack.interfaces.IAuthRepository;
-import com.example.archer.contacts_13.dagpack.interfaces.ILoginRepositoryCallback;
-import com.example.archer.contacts_13.dagpack.interfaces.IRegistrationRepositoryCallback;
 import com.example.archer.contacts_13.dagpack.interfaces.IStore;
 import com.example.archer.contacts_13.dto.AuthDto;
 import com.example.archer.contacts_13.dto.AuthResponseDto;
@@ -12,6 +10,9 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -28,39 +29,33 @@ public class AuthRepository implements IAuthRepository {
     }
 
     @Override
-    public void registration(String email, String password, IRegistrationRepositoryCallback callback) {
+    public Completable registration(String email, String password) {
         AuthDto authDto = new AuthDto(email, password);
-        Call<AuthResponseDto> call = api.registration(authDto);
-        try {
-            Response<AuthResponseDto> response = call.execute();
-            if(response.isSuccessful()){
-                callback.successful();
-            }else{
-                ErrorDto errorDto = gson.fromJson(response.errorBody().string(), ErrorDto.class);
-                callback.failure(errorDto.toString());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            callback.failure(e.getMessage());
+        return Completable.fromSingle(api.registration())
+    }
+
+    private String registrationResponse(Response<AuthResponseDto> response) throws Exception {
+        if(response.isSuccessful()){
+            return "Done";
+        }else{
+            ErrorDto errorDto = gson.fromJson(response.errorBody().string(), ErrorDto.class);
+            throw new Exception(errorDto.toString());
         }
     }
 
     @Override
-    public void login(String email, String password, ILoginRepositoryCallback callback) {
+    public void login(String email, String password) {
         AuthDto authDto = new AuthDto(email, password);
-        Call<AuthResponseDto> call = api.login(authDto);
-        try {
-            Response<AuthResponseDto> response = call.execute();
-            if(response.isSuccessful()){
-                store.saveToket(response.body().getToken());
-                callback.successful();
-            }else{
-                ErrorDto errorDto = gson.fromJson(response.errorBody().string(), ErrorDto.class);
-                callback.failure(errorDto.toString());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            callback.failure(e.getMessage());
+        return Completable.fromSingle(api.login(authDto)
+                .doOnSuccess(this::registrationResponse));
+    }
+
+    private void loginResponse(Response<AuthResponseDto> response) throws Exception {
+        if(response.isSuccessful()){
+            store.saveToket(response.body().getToken());
+        }else{
+            ErrorDto errorDto = gson.fromJson(response.errorBody().string(), ErrorDto.class);
+            throw new Exception(errorDto.toString());
         }
     }
 }

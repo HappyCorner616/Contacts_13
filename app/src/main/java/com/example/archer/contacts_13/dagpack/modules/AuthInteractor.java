@@ -2,10 +2,10 @@ package com.example.archer.contacts_13.dagpack.modules;
 
 import com.example.archer.contacts_13.dagpack.interfaces.IAuthInteractor;
 import com.example.archer.contacts_13.dagpack.interfaces.IAuthRepository;
-import com.example.archer.contacts_13.dagpack.interfaces.ILoginInteractorCallback;
-import com.example.archer.contacts_13.dagpack.interfaces.ILoginRepositoryCallback;
-import com.example.archer.contacts_13.dagpack.interfaces.IRegistrationInteractorCallback;
-import com.example.archer.contacts_13.dagpack.interfaces.IRegistrationRepositoryCallback;
+
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 public class AuthInteractor implements IAuthInteractor {
 
@@ -16,43 +16,20 @@ public class AuthInteractor implements IAuthInteractor {
     }
 
     @Override
-    public void registration(String email, String password, final IRegistrationInteractorCallback callback) {
+    public Completable registration(String email, String password) throws Exception {
         try {
             checkEmail(email);
             checkPassword(password);
-        } catch (PasswordException e) {
-            callback.failure(e.getMessage());
-            return;
-        } catch (EmailException e) {
-            callback.failure(e.getMessage());
-            return;
+        } catch (PasswordException | EmailException e) {
+            return Completable.error(e);
         }
-        authRepository.registration(email, password, new IRegistrationRepositoryCallback() {
-            @Override
-            public void successful() {
-                callback.successful();
-            }
 
-            @Override
-            public void failure(String error) {
-                callback.failure(error);
-            }
-        });
+        return authRepository.registration(email, password);
     }
 
     @Override
-    public void login(String email, String password, final ILoginInteractorCallback callback) {
-        authRepository.login(email, password, new ILoginRepositoryCallback() {
-            @Override
-            public void successful() {
-                callback.successful();
-            }
-
-            @Override
-            public void failure(String error) {
-                callback.failure(error);
-            }
-        });
+    public void login(String email, String password) {
+        authRepository.login(email, password);
     }
 
     private void checkEmail(String email) throws EmailException {

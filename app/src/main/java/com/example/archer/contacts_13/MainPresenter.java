@@ -5,12 +5,9 @@ import android.os.AsyncTask;
 import com.arellomobile.mvp.InjectViewState;
 import com.arellomobile.mvp.MvpPresenter;
 import com.example.archer.contacts_13.dagpack.interfaces.IAuthInteractor;
-import com.example.archer.contacts_13.dagpack.interfaces.ILoginInteractorCallback;
-import com.example.archer.contacts_13.dagpack.interfaces.IRegistrationInteractorCallback;
 import com.example.archer.contacts_13.dto.Contact;
 import com.example.archer.contacts_13.dto.ContactsDto;
 import com.example.archer.contacts_13.provider.HttpProvider;
-import com.example.archer.contacts_13.provider.HttpProvider_2;
 import com.example.archer.contacts_13.provider.StoreProvider;
 
 import java.util.ArrayList;
@@ -18,22 +15,36 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 @InjectViewState
 public class MainPresenter extends MvpPresenter<IMainActivity> {
 
     @Inject
     IAuthInteractor authInteractor;
 
+    private Disposable disposable;
+
     public MainPresenter(){
         App.get().authComponent().inject(this);
     }
 
     public void registration(String email,String password){
-        new RegistrationTask(email, password).execute();
+        disposable = authInteractor.registration(email, password)
+                .doOnSubscribe(getViewState()::setWaitingMode)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::successfulRegistration, this::handleError);
+    }
+
+    private void successfulRegistration() {
     }
 
     public void login(String email, String password){
-        new LoginTask(email, password).execute();
+
     }
 
     public void refreshContactsList(ListFragment listFragment){
@@ -64,94 +75,13 @@ public class MainPresenter extends MvpPresenter<IMainActivity> {
         new DeleteContactsTask(contacts, listFragment).execute();
     }
 
-    class RegistrationTask extends AsyncTask<Void, Void, Void>{
-
-        private String email, password;
-        private boolean isSuccessful;
-        private String res;
-
-        public RegistrationTask(String email, String password) {
-            this.email = email;
-            this.password = password;
-            isSuccessful = true;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            getViewState().setWaitingMode();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            authInteractor.registration(email, password, new IRegistrationInteractorCallback() {
-               @Override
-               public void successful() {
-                   res = "Done";
-               }
-
-               @Override
-               public void failure(String error) {
-                   isSuccessful = false;
-                   res = error;
-               }
-           });
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void v) {
-            getViewState().desetWaitingMode();
-            if(isSuccessful){
-                getViewState().showToast(res);
-            }else{
-                getViewState().showError(res);
-            }
-        }
+    private void handleError(Throwable throwable){
+        getViewState().desetWaitingMode();
+        getViewState().showError(throwable.getMessage());
     }
 
-    class LoginTask extends AsyncTask<Void, Void, Void>{
-
-        private String email, password;
-        private boolean isSuccessful;
-        private String res;
-
-        public LoginTask(String email, String password) {
-            this.email = email;
-            this.password = password;
-            isSuccessful = true;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            getViewState().setWaitingMode();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            authInteractor.login(email, password, new ILoginInteractorCallback() {
-                @Override
-                public void successful() {
-
-                }
-
-                @Override
-                public void failure(String error) {
-                    isSuccessful = false;
-                    res = error;
-                }
-            });
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void v) {
-            getViewState().desetWaitingMode();
-            if(isSuccessful){
-                getViewState().startListFragment();
-            }else{
-                getViewState().showError(res);
-            }
-        }
+    public void successfulRegistration(String message){
+        getViewState().showToast(message);
     }
 
     class RefreshContactsListTack extends  AsyncTask<Void, Void, String>{

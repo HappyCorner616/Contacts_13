@@ -6,7 +6,10 @@ import com.example.archer.contacts_13.dto.Contact;
 import com.example.archer.contacts_13.dto.ContactsDto;
 import com.example.archer.contacts_13.dto.DeleteResponseDto;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
@@ -17,10 +20,10 @@ import retrofit2.http.Path;
 
 public interface Api {
     @POST("api/registration")
-    Call<AuthResponseDto> registration(@Body AuthDto authDto);
+    Single<AuthResponseDto> registration(@Body AuthDto authDto);
 
     @POST("api/login")
-    Call<AuthResponseDto> login(@Body AuthDto authDto);
+    Single<AuthResponseDto> login(@Body AuthDto authDto);
 
     @DELETE("api/clear")
     Call<DeleteResponseDto> clearAll(@Header("Authorization") String authorization);

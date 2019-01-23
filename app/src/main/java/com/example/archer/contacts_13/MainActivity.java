@@ -3,7 +3,6 @@ package com.example.archer.contacts_13;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -11,15 +10,10 @@ import android.widget.Toast;
 
 import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.arellomobile.mvp.presenter.InjectPresenter;
-import com.example.archer.contacts_13.dagpack.interfaces.IAuthInteractor;
-import com.example.archer.contacts_13.dagpack.interfaces.ILoginInteractorCallback;
-import com.example.archer.contacts_13.dagpack.interfaces.IRegistrationInteractorCallback;
 import com.example.archer.contacts_13.dto.Contact;
 import com.example.archer.contacts_13.provider.StoreProvider;
 
 import java.util.List;
-
-import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

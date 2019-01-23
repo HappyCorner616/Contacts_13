@@ -1,6 +1,10 @@
 package com.example.archer.contacts_13.dagpack.interfaces;
 
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+
 public interface IAuthRepository {
-    void registration(String email, String password, IRegistrationRepositoryCallback callback);
-    void login(String email, String password, ILoginRepositoryCallback callback);
+    Completable registration(String email, String password);
+    void login(String email, String password);
 }
